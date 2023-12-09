@@ -1,14 +1,20 @@
 facility(club_atletico_river_plate, soccer, all_levels, nunez, all_day, moderate, both, group_individual, competitive_recreational, equipment_rental, yes).
 
-facility(parque_centenario, soccer_basketball, all_levels, caballito, all_day, free, both, group_individual, recreational, no_equipment_needed, yes).
+facility(parque_centenario, soccer, all_levels, caballito, all_day, free, both, group_individual, recreational, no_equipment_needed, yes).
+
+facility(parque_centenario, basketball, all_levels, caballito, all_day, free, both, group_individual, recreational, no_equipment_needed, yes).
 
 facility(club_atletico_boca_juniors, soccer, all_levels, la_boca, all_day, moderate, both, group_individual, competitive_recreational, equipment_rental, yes).
 
 facility(estadio_obras_sanitarias, basketball, all_levels, nunez, all_day, moderate, indoor, group_individual, competitive_recreational, equipment_rental, yes).
 
-facility(hipodromo_argentino_de_palermo, running_cycling, all_levels, palermo, all_day, free, outdoor, individual, recreational, no_equipment_needed, yes).
+facility(hipodromo_argentino_de_palermo, running, all_levels, palermo, all_day, free, outdoor, individual, recreational, no_equipment_needed, yes).
 
-facility(la_reserva_ecologica_costanera_sur, hiking_biking, all_levels, puerto_madero, all_day, free, outdoor, individual, recreational, no_equipment_needed, yes).
+facility(hipodromo_argentino_de_palermo, cycling, all_levels, palermo, all_day, free, outdoor, individual, recreational, no_equipment_needed, yes).
+
+facility(la_reserva_ecologica_costanera_sur, biking, all_levels, puerto_madero, all_day, free, outdoor, individual, recreational, no_equipment_needed, yes).
+
+facility(la_reserva_ecologica_costanera_sur, hiking, all_levels, puerto_madero, all_day, free, outdoor, individual, recreational, no_equipment_needed, yes).
 
 facility(club_gimnasia_y_esgrima_de_buenos_aires, tennis, all_levels, palermo, all_day, moderate, indoor_outdoor, group_individual, competitive_recreational, equipment_rental, yes).
 
