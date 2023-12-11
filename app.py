@@ -50,6 +50,9 @@ class ExpertSystemGUI(QWidget):
         self.query_thread = None
         self.sport = None
         self.location = None
+        self.budget = 'free'
+        self.skill_level = 'beginner'
+        self.indoor_outdoor = 'outdoor'
         self.additionalQuestionsRendered = False  # Flag to track state
 
     def initUI(self):
@@ -89,7 +92,9 @@ class ExpertSystemGUI(QWidget):
         self.skillLevelDropdown = QComboBox(self)
         self.skillLevelDropdown.addItems(
             ["beginner", "intermediate", "advanced", "all_levels"])
-        self.indoorOutdoorCheckbox = QCheckBox("Indoor", self)
+        self.indoorOutdoorCheckbox = QComboBox(self)
+        self.indoorOutdoorCheckbox.addItems(
+            ["indoor", "outdoor", "indoor_outdoor"])
         self.getRecommendationButton = QPushButton('Get Recommendation', self)
         self.getRecommendationButton.clicked.connect(
             self.on_get_recommendation_click)
@@ -103,16 +108,22 @@ class ExpertSystemGUI(QWidget):
             self.layout.addWidget(self.getRecommendationButton)
             self.additionalQuestionsRendered = True
 
-    def query_prolog_and_display_results(self, sport, location, budget, skill_level, indoor_outdoor):
+    def query_prolog_and_display_results(self):
+        # Building and executing the Prolog query
         try:
             prolog = Prolog()
             prolog.consult("recommendation_rules.pl")
 
-            query_string = f"recommend_facility('{sport}', '{location}', '{budget}', '{skill_level}', '{indoor_outdoor}', Facility)"
+            # Dynamically build the Prolog query string
+            query_parts = [self.sport, self.location, self.budget,
+                           self.skill_level, "_", self.indoor_outdoor]
+            query_parts = [part if part !=
+                           'any' else '_' for part in query_parts]
+            query_string = "recommend_facility({}, {}, {}, {}, {}, Facility)".format(
+                *query_parts)
             print(f"Querying Prolog with: {query_string}")  # Debugging
-            results = list(prolog.query(query_string))
-            print(f"Results: {results}")  # Debugging
 
+            results = list(prolog.query(query_string))
             if results:
                 facilities = [result["Facility"] for result in results]
                 self.resultsText.setText(
@@ -121,53 +132,136 @@ class ExpertSystemGUI(QWidget):
                 self.resultsText.setText("No matching facilities found.")
         except Exception as e:
             self.resultsText.setText(f"Error in querying Prolog: {e}")
-            print(f"Prolog query error: {e}")  # Debugging
+
+    def process_input(self, user_input):
+        if 'no preference' in user_input:
+            self.handle_general_input()
+            return
+
+        if not self.sport:
+            self.handle_sport_input(user_input)
+        elif not self.location:
+            self.handle_location_input(user_input)
+        else:
+            self.handle_additional_inputs()
+
+    def handle_general_input(self):
+        # Handle the case where the user has no specific preference
+        self.sport = 'various_sports'
+        self.location = 'any'
+        self.budget = 'any'
+        self.skill_level = 'all_levels'
+        self.indoor_outdoor = 'any'
+        self.query_prolog_and_display_results()
+
+    def ask_location_question(self):
+        self.layout.addWidget(QLabel("Where would you like to play?"))
+        self.locationInput.clear()
+        self.layout.addWidget(self.locationInput)
+
+    def handle_sport_input(self, user_input):
+        # Handle the case where the user has a sport preference
+        self.sport = user_input if user_input != 'any' else 'various_sports'
+        self.ask_location_question()
+
+    def handle_location_input(self, user_input):
+        # Handle specific location input and proceed to additional questions
+        self.location = user_input if user_input != 'any' else 'any'
+        self.ask_budget_question()
+
+    def handle_additional_inputs(self):
+        # Handle additional inputs based on current state
+        if not self.budget:
+            self.budget = self.budgetDropdown.currentText()
+        if not self.skill_level:
+            self.skill_level = self.skillLevelDropdown.currentText()
+        if not self.indoor_outdoor:
+            self.indoor_outdoor = self.indoorOutdoorCheckbox.currentText()
+        self.query_prolog_and_display_results()
 
     def on_process_input_click(self):
-        user_input = self.textInput.text()
-        print(f"User input: {user_input}")  # Debugging
+        user_input = self.textInput.text().lower().strip()
+        self.textInput.clear()  # Clear the input field for the next interaction
         doc = nlp(user_input)
         self.sport, self.location = self.extract_info(doc)
 
+        if 'no preference' in user_input:
+            self.display_general_choices()
+        elif self.sport and self.location:
+            # Both sport and location are known, proceed to additional questions
+            self.ask_additional_questions()
+        elif not self.sport:
+            # Sport is unknown, ask about it
+            self.ask_sport_question()
+        elif not self.location:
+            # Location is unknown, ask about it
+            self.ask_location_question()
+        else:
+            # Something unexpected happened
+            self.resultsText.setText("Please provide more information.")
+
+    def display_general_choices(self):
+        # Display popular or general choices and the 'Get Recommendation' button
+        self.resultsText.setText("Suggesting popular/general choices...")
+        self.layout.addWidget(self.getRecommendationButton)
+
+    def ask_sport_question(self):
+        self.layout.addWidget(QLabel("What sport are you interested in?"))
+        # Temporary use for sport selection
+        self.layout.addWidget(self.skillLevelDropdown)
+
+    def ask_budget_question(self):
+        self.layout.addWidget(QLabel("What is your budget preference?"))
+        self.layout.addWidget(self.budgetDropdown)
+        self.ask_skill_level_question()
+
+    def ask_skill_level_question(self):
+        self.layout.addWidget(QLabel("What is your skill level?"))
+        self.layout.addWidget(self.skillLevelDropdown)
+        self.ask_preferences_question()
+
+    def ask_preferences_question(self):
+        self.layout.addWidget(QLabel("Any indoor/outdoor preference?"))
+        self.layout.addWidget(self.indoorOutdoorCheckbox)
+        self.layout.addWidget(self.getRecommendationButton)
+
+    def ask_missing_questions(self):
+        if not self.sport:
+            self.layout.addWidget(QLabel("What sport are you interested in?"))
+            self.layout.addWidget(self.skillLevelDropdown)
+
+        if not self.location:
+            self.layout.addWidget(QLabel("Where would you like to play?"))
+            self.locationInput.clear()
+            self.layout.addWidget(self.locationInput)
+
+        self.ask_budget_question()
+
+    def ask_additional_questions(self):
+        self.ask_budget_question()
+        self.ask_skill_level_question()
+        self.ask_preferences_question()
+
+    def get_recommendation(self):
+        # Only call query method if we have enough info
         if self.sport and self.location:
-            print("Both sport and location extracted, querying Prolog...")
             self.query_prolog_and_display_results(
-                self.sport, self.location, 'free', 'beginner', 'outdoor')
-        elif self.sport or self.location:
-            print(
-                f"Partial info extracted - Sport: {self.sport}, Location: {self.location}")
-            self.ask_follow_up_questions()
+                self.sport, self.location, self.budget, self.skill_level, self.indoor_outdoor)
         else:
             self.resultsText.setText(
-                "Could not extract the necessary information.")
-            print("Failed to extract necessary information.")  # Debugging
+                "Please provide more information to get recommendations.")
 
     def on_get_recommendation_click(self):
-        budget = self.budgetDropdown.currentText()
-        skill_level = self.skillLevelDropdown.currentText()
-        indoor_outdoor = 'indoor' if self.indoorOutdoorCheckbox.isChecked() else 'outdoor'
-        location = self.location if self.location else self.locationInput.text()
-        self.query_prolog_and_display_results(
-            self.sport, location, budget, skill_level, indoor_outdoor)
-
-    def on_process_input_click(self):
-        user_input = self.textInput.text()
-        print(f"User input: {user_input}")  # Debugging
-        doc = nlp(user_input)
-        self.sport, self.location = self.extract_info(doc)
-
-        if self.sport or self.location:
-            print(
-                f"Partial info extracted - Sport: {self.sport}, Location: {self.location}")
-            self.ask_follow_up_questions()
-        else:
-            self.resultsText.setText(
-                "Could not extract the necessary information.")
-            print("Failed to extract necessary information.")  # Debugging
+        # Update askables based on current selection
+        self.budget = self.budgetDropdown.currentText()
+        self.skill_level = self.skillLevelDropdown.currentText()
+        self.indoor_outdoor = self.indoorOutdoorCheckbox.currentText()
+        self.location = self.location if self.location else self.locationInput.text()
+        # Call the query method without parameters
+        self.query_prolog_and_display_results()
 
     def ask_follow_up_questions(self):
-        self.textInput.clear()
-
+        self.formLayout.removeRow(self.textInput)
         if not self.sport:
             self.layout.addWidget(QLabel("What sport are you interested in?"))
             self.layout.addWidget(self.skillLevelDropdown)
@@ -176,11 +270,8 @@ class ExpertSystemGUI(QWidget):
             self.layout.addWidget(QLabel("Where would you like to play?"))
             self.layout.addWidget(self.locationInput)
 
-        # to ensure additional questions and widgets are added only once
         if not self.additionalQuestionsRendered:
-            self.layout.addWidget(self.getRecommendationButton)
-            self.layout.addWidget(self.indoorOutdoorCheckbox)
-            self.additionalQuestionsRendered = True
+            self.update_ui_with_additional_questions()
 
     def prompt_for_location(self):
         self.locationLabel = QLabel(
@@ -188,7 +279,32 @@ class ExpertSystemGUI(QWidget):
         self.locationInput = QLineEdit(self)
         self.formLayout.addRow(self.locationLabel, self.locationInput)
 
+    def update_ui_with_additional_questions(self):
+        self.layout.addWidget(self.budgetDropdown)
+        self.layout.addWidget(self.indoorOutdoorCheckbox)
+        self.layout.addWidget(self.getRecommendationButton)
+        self.additionalQuestionsRendered = True
+
+    def build_prolog_query(self):
+        # Dynamically build the Prolog query string
+        query_parts = []
+        query_parts.append(
+            f"'{self.sport}'") if self.sport != 'any' else query_parts.append("_")
+        query_parts.append(
+            f"'{self.location}'") if self.location != 'any' else query_parts.append("_")
+        query_parts.append(
+            f"'{self.budget}'") if self.budget != 'any' else query_parts.append("_")
+        query_parts.append(
+            f"'{self.skill_level}'") if self.skill_level != 'any' else query_parts.append("_")
+        # Placeholder for time, as it's always 'all_day'
+        query_parts.append("_")
+        query_parts.append(
+            f"'{self.indoor_outdoor}'") if self.indoor_outdoor != 'any' else query_parts.append("_")
+
+        return "recommend_facility({}, {}, {}, {}, Facility)".format(*query_parts)
+
     def extract_info(self, doc):
+        # Improved extraction logic to better handle 'any' or specific values
         sport = None
         location = None
         sports_keywords = ["soccer", "tennis", "rugby", "polo", "equestrian",
@@ -202,8 +318,6 @@ class ExpertSystemGUI(QWidget):
             elif token.text.lower() in neighborhoods:
                 location = token.text.lower()
 
-        # For debugging
-        print(f"Extracted info - Sport: {sport}, Location: {location}")
         return sport, location
 
 

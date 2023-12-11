@@ -20,6 +20,8 @@ normalize_sport('Swimming', swimming).
 normalize_sport('swimming', swimming).
 normalize_sport('Basketball', basketball).
 normalize_sport('basketball', basketball).
+normalize_sport('Various Sports', various_sports).
+normalize_sport('various_sports', various_sports).
 
 % Normalize location names
 normalize_location('Núñez', nunez).
