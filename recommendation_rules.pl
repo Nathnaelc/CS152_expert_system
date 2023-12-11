@@ -16,7 +16,45 @@ normalize_sport('Polo', polo).
 normalize_sport('polo', polo).
 normalize_sport('Equestrian', equestrian).
 normalize_sport('equestrian', equestrian).
-% Add similar rules for other sports
+normalize_sport('Swimming', swimming).
+normalize_sport('swimming', swimming).
+normalize_sport('Basketball', basketball).
+normalize_sport('basketball', basketball).
+
+% Normalize location names
+normalize_location('Núñez', nunez).
+normalize_location('Caballito', caballito).
+normalize_location('La Boca', la_boca).
+normalize_location('Palermo', palermo).
+normalize_location('Puerto Madero', puerto_madero).
+normalize_location('Villa Urquiza', villa_urquiza).
+normalize_location('Villa Devoto', villa_devoto).
+normalize_location('Almagro', almagro).
+normalize_location('Liniers', liniers).
+normalize_location('Boedo', boedo).
+normalize_location('Villa Soldati', villa_soldati).
+normalize_location('Lanús', lanus).
+normalize_location('Parque Patricios', parque_patricios).
+normalize_location('La Paternal', la_paternal).
+normalize_location('Floresta', floresta).
+normalize_location('Quilmes', quilmes).
+normalize_location('Villa Maipú', villa_maipu).
+normalize_location('Mataderos', mataderos).
+normalize_location('Villa Crespo', villa_crespo).
+normalize_location('Belgrano', belgrano).
+normalize_location('Barracas', barracas).
+normalize_location('Parque Chacabuco', parque_chacabuco).
+normalize_location('Adrogué', adrogue).
+normalize_location('La Plata', la_plata).
+normalize_location('Campana', campana).
+normalize_location('Pilar', pilar).
+normalize_location('San Miguel', san_miguel).
+normalize_location('Ituzaingó', ituzaingo).
+
+% Predicate to normalize two-worded locations
+normalize_location(TwoWordLocation, NormalizedLocation) :-
+    atomic_list_concat(Words, '_', TwoWordLocation),
+    normalize_location(Words, NormalizedLocation).
 
 % Rule to recommend a facility based on sport, location, budget, and skill level
 recommend_facility(Sport, Location, Budget, SkillLevel, RecommendedFacility) :-

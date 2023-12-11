@@ -21,7 +21,7 @@ pydantic_core==2.14.5
 PyQt5==5.15.10
 PyQt5-Qt5==5.15.11
 PyQt5-sip==12.13.0
-pyswip==0.2.10
+pyswip==0.2.11
 requests==2.31.0
 smart-open==6.4.0
 spacy==3.7.2

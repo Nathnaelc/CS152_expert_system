@@ -1,5 +1,6 @@
-.venv
+.myvenv
 __pycache__/
 CS152-LBA.code-workspace
-venv/
-venv
+myvenv/
+myvenv
+backup.txt

@@ -1,21 +1,22 @@
-import subprocess
-# this is just for testing ignore this file
-
-def run_prolog_query(sport, location):
-    # Command to run Prolog script with arguments
-    command = ["swipl", "-s", "run_query.pl", "-g",
-               f"print_facilities({sport},{location}),halt"]
-
-    # Running the command and capturing output
-    result = subprocess.run(command, capture_output=True, text=True)
-    return result.stdout
+import os
+from pyswip import Prolog
 
 
-def query_prolog_and_display_results(sport, location):
-    results = run_prolog_query(sport, location)
-    print("Recommended facilities:\n", results)
+def main():
+    prolog = Prolog()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    prolog_file = os.path.join(dir_path, "recommendation_rules.pl")
+    prolog.consult(prolog_file)
+
+    # Test Query
+    query_string = f"recommend_facility('soccer', 'la_paternal', 'moderate', 'all_levels', Facility)"
+    print(f"Querying Prolog with: {query_string}")
+    try:
+        results = list(prolog.query(query_string))
+        print(f"Results: {results}")
+    except Exception as e:
+        print(f"Error during Prolog query: {e}")
 
 
-# Example usage
 if __name__ == "__main__":
-    query_prolog_and_display_results('soccer', 'palermo')
+    main()
